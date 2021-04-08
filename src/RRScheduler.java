@@ -67,17 +67,7 @@ public class RRScheduler extends Scheduler {
 	}
 
 	public void stepped(Task task, ArrayList<Task> tasks) {
-		boolean allZero = true;
-		for (Task t : tasks) {
-			if (leftTime.get(t) > 0) {
-				allZero = false;
-			}
-		}
-		if (allZero) {
-			for (Task t : tasks) {
-				leftTime.replace(t, baseTime);
-			}
-		}
+		resetIfZero(tasks);
 		int value;
 		if ((value = leftTime.get(task)) > 0) {
 			leftTime.replace(task, value - 1);
@@ -95,14 +85,41 @@ public class RRScheduler extends Scheduler {
 //		}
 	}
 
-	public void tick(int time) {
-		if (time > 0 && time > lastStepTime + 1) {
-			lastStepTime = time;
+	public void tick(TaskSchedulerProgram tsp) {
+		if (tsp.time > 0 && tsp.time > lastStepTime + 1) {
 			for (int i = 0; i < sortedTasks.size(); i++) {
 				if (leftTime.get(sortedTasks.get(i)) == 1) {
 					leftTime.replace(sortedTasks.get(i), 0);
+					int delta = 0;
+					for (int j = 0; j < sortedTasks.size(); j++) {
+						if (leftTime.get(sortedTasks.get(j)) > 0) {
+							delta = j;
+							break;
+						}
+					}
+					ArrayList<Task> tmp = new ArrayList<>();
+					tmp.addAll(sortedTasks.subList(delta, sortedTasks.size()));
+					tmp.addAll(sortedTasks.subList(0, delta));
+					sortedTasks = tmp;
+					tsp.prio0 = sortedTasks;
 					break;
 				}
+			}
+		}
+		lastStepTime = tsp.time;
+		resetIfZero(sortedTasks);
+	}
+
+	private void resetIfZero(ArrayList<Task> sortedTasks) {
+		boolean allZero = true;
+		for (Task t : sortedTasks) {
+			if (leftTime.get(t) > 0) {
+				allZero = false;
+			}
+		}
+		if (allZero) {
+			for (Task t : sortedTasks) {
+				leftTime.replace(t, baseTime);
 			}
 		}
 	}

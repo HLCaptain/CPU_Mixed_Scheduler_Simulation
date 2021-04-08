@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class SJFScheduler extends Scheduler{
+public class SJFScheduler extends Scheduler {
 	public Task current;
 
 	@Override

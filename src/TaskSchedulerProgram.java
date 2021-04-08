@@ -10,7 +10,7 @@ public class TaskSchedulerProgram {
 	private String line;
 	private Task prev;
 	private Task current;
-	private int time;
+	public int time;
 	public ArrayList<Task> prio0;
 	public ArrayList<Task> prio1;
 
@@ -44,15 +44,19 @@ public class TaskSchedulerProgram {
 		prio0 = rr.schedule(prio0);
 		 // setting current task
 		prio1 = sjf.schedule(prio1);
-		rr.tick(time);
+		if (prio1.isEmpty()) {
+			rr.tick(this);
+		}
 		sortedTasks.addAll(prio1);
 		sortedTasks.addAll(prio0);
+		//rr.tick(time);
 		if (!sortedTasks.isEmpty()) {
 			current = sortedTasks.get(0);
 			sjf.current = current;
 		} else return;
 
 		if (prio1.isEmpty()) {
+
 			sortedTasks.get(0).step(this, rr);
 		} else sortedTasks.get(0).step(this, null);
 
@@ -91,8 +95,13 @@ public class TaskSchedulerProgram {
 			}
 		} catch (Exception ignored) { }
 
-		rr.inicialize(tasks);
-		sjf.inicialize(tasks);
+		prio1 = new ArrayList<>();
+		for (Task t : tasks) { if (t.getPriority() == 1) prio1.add(t); }
+		prio0 = new ArrayList<>();
+		for (Task t : tasks) { if (t.getPriority() == 0) prio0.add(t); }
+
+		rr.inicialize(prio0);
+		sjf.inicialize(prio1);
 		beginTasks.addAll(tasks);
 	}
 
