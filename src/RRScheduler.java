@@ -7,6 +7,7 @@ public class RRScheduler extends Scheduler {
 	HashMap<Task, Integer> leftTime;
 	int lastStepTime;
 	public ArrayList<Task> sortedTasks;
+	int lastSize = 0;
 
 	public RRScheduler() {
 		baseTime = 2;
@@ -87,6 +88,10 @@ public class RRScheduler extends Scheduler {
 
 	public void tick(TaskSchedulerProgram tsp) {
 		if (tsp.time > 0 && tsp.time > lastStepTime + 1) {
+			if (lastSize < sortedTasks.size()) {
+				zeroAll(sortedTasks);
+				resetIfZero(sortedTasks);
+			}
 			for (int i = 0; i < sortedTasks.size(); i++) {
 				if (leftTime.get(sortedTasks.get(i)) == 1) {
 					leftTime.replace(sortedTasks.get(i), 0);
@@ -105,22 +110,30 @@ public class RRScheduler extends Scheduler {
 					break;
 				}
 			}
+			tsp.prio0 = sortedTasks;
+			lastSize = sortedTasks.size();
 		}
 		lastStepTime = tsp.time;
 		resetIfZero(sortedTasks);
 	}
 
-	private void resetIfZero(ArrayList<Task> sortedTasks) {
+	private void resetIfZero(ArrayList<Task> tasks) {
 		boolean allZero = true;
-		for (Task t : sortedTasks) {
+		for (Task t : tasks) {
 			if (leftTime.get(t) > 0) {
 				allZero = false;
 			}
 		}
 		if (allZero) {
-			for (Task t : sortedTasks) {
+			for (Task t : tasks) {
 				leftTime.replace(t, baseTime);
 			}
+		}
+	}
+
+	private void zeroAll(ArrayList<Task> tasks) {
+		for (Task t : tasks) {
+			leftTime.replace(t, 0);
 		}
 	}
 }
